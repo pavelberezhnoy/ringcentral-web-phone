@@ -148,11 +148,6 @@
         var id = options.uuid || localStorage.getItem(this.uuidKey) || uuid(); //TODO Make configurable
         localStorage.setItem(this.uuidKey, id);
 
-        // var rcMediaHandlerFactory = function(session, options) {
-        //     //TODO Override MediaHandler functions in order to disable TCP candidates
-        //     return new SIP.WebRTC.MediaHandler(session, options);
-        // };
-
         this.appKey = options.appKey;
         this.appName = options.appName;
         this.appVersion = options.appVersion;
@@ -167,17 +162,19 @@
             traceSip: true,
             stunServers: this.sipInfo.stunServers || ['stun:74.125.194.127:19302'], //FIXME Hardcoded?
             turnServers: [],
-            log: {
-                level: options.logLevel || 1 //FIXME LOG LEVEL 3
+            log: options.log,
+            sessionDescriptionHandlerFactoryOptions: option.sessionDescriptionHandlerFactoryOptions,
+            sessionDescriptionHandlerOptions: {
+                peerConnectionOptions: {
+                    rtcConfiguration: {
+                        rtcpMuxPolicy: 'negotiate'
+                    }
+                }
             },
             domain: this.sipInfo.domain,
             autostart: true,
             register: true,
-            iceCheckingTimeout: this.sipInfo.iceCheckingTimeout || this.sipInfo.iceGatheringTimeout || 500,
-            // mediaHandlerFactory: rcMediaHandlerFactory,
-            rtcpMuxPolicy: "negotiate",
-            //disable TCP candidates
-            hackStripTcp:true
+            iceCheckingTimeout: this.sipInfo.iceCheckingTimeout || this.sipInfo.iceGatheringTimeout || 500
         };
 
 
@@ -341,7 +338,7 @@
         session.on('progress', function(incomingResponse) {
             if (incomingResponse.status_code === 183 && incomingResponse.body) {
                 session.createDialog(incomingResponse, 'UAC');
-                session.mediaHandler.setDescription(incomingResponse).then(function() {
+                session.sessionDescriptionHandler.setDescription(incomingResponse).then(function() {
                     session.status = 11; //C.STATUS_EARLY_MEDIA;
                     session.hasAnswer = true;
                 });
@@ -354,8 +351,8 @@
         session.on('cancel', stopPlaying);
         session.on('failed', stopPlaying);
         session.on('replaced', stopPlaying);
-        session.mediaHandler.on('iceConnectionCompleted', stopPlaying);
-        session.mediaHandler.on('iceConnectionFailed', stopPlaying);
+        session.sessionDescriptionHandler.on('iceConnectionCompleted', stopPlaying);
+        session.sessionDescriptionHandler.on('iceConnectionFailed', stopPlaying);
 
         function stopPlaying() {
             session.ua.audioHelper.playOutgoing(false);
@@ -367,8 +364,8 @@
             session.removeListener('cancel', stopPlaying);
             session.removeListener('failed', stopPlaying);
             session.removeListener('replaced', stopPlaying);
-            session.mediaHandler.removeListener('iceConnectionCompleted', stopPlaying);
-            session.mediaHandler.removeListener('iceConnectionFailed', stopPlaying);
+            session.sessionDescriptionHandler.removeListener('iceConnectionCompleted', stopPlaying);
+            session.sessionDescriptionHandler.removeListener('iceConnectionFailed', stopPlaying);
         }
 
         if (session.ua.onSession) session.ua.onSession(session);
@@ -717,7 +714,7 @@
                     if (request.call_id && session.dialog && session.dialog.id && request.call_id == session.dialog.id.call_id) {
                         //TODO: check that SDP did not change
                         session.logger.log('re-INVITE received');
-                        var localSDP = session.mediaHandler.peerConnection.localDescription.sdp;
+                        var localSDP = session.sessionDescriptionHandler.peerConnection.localDescription.sdp;
                         request.reply(200, null, ['Contact: ' + session.contact], localSDP, function() {
                             session.status = SIP.Session.C.STATUS_WAITING_FOR_ACK;
                             session.setInvite2xxTimer(request, localSDP);
@@ -787,7 +784,7 @@
     function dtmf(dtmf, duration) {
         var session = this;
         duration = parseInt(duration) || 1000;
-        var peer = session.mediaHandler.peerConnection;
+        var peer = session.sessionDescriptionHandler.peerConnection;
         var stream = session.getLocalStreams()[0];
         var dtmfSender = peer.createDTMFSender(stream.getAudioTracks()[0]);
         if (dtmfSender !== undefined && dtmfSender.canInsertDTMF) {
