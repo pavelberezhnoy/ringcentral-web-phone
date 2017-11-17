@@ -163,7 +163,7 @@
             stunServers: this.sipInfo.stunServers || ['stun:74.125.194.127:19302'], //FIXME Hardcoded?
             turnServers: [],
             log: options.log,
-            sessionDescriptionHandlerFactoryOptions: option.sessionDescriptionHandlerFactoryOptions,
+            sessionDescriptionHandlerFactoryOptions: options.sessionDescriptionHandlerFactoryOptions,
             sessionDescriptionHandlerOptions: {
                 peerConnectionOptions: {
                     rtcConfiguration: {
