@@ -345,6 +345,7 @@
                 });
             }
         });
+
         session.on('accepted', stopPlaying);
         session.on('rejected', stopPlaying);
         session.on('bye', stopPlaying);
