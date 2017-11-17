@@ -113,7 +113,6 @@
             }
         }
     };
-
     AudioHelper.prototype.playIncoming = function(val) {
         return this._playSound(this._incoming, val, (this.volume || 0.5));
     };
