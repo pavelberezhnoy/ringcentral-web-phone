@@ -159,8 +159,8 @@
             authorizationUser: this.sipInfo.authorizationId,
             password: this.sipInfo.password,
             traceSip: true,
-            stunServers: this.sipInfo.stunServers || ['stun:74.125.194.127:19302'], //FIXME Hardcoded?
-            turnServers: [],
+            //stunServers: this.sipInfo.stunServers || ['stun:74.125.194.127:19302'], //FIXME Hardcoded?
+            //turnServers: [],
             log: options.log,
             sessionDescriptionHandlerFactoryOptions: options.sessionDescriptionHandlerFactoryOptions,
             sessionDescriptionHandlerOptions: {
@@ -170,6 +170,9 @@
                     }
                 }
             },
+            iceServers: [{
+                urls: this.sipInfo.stunServers || ['stun:74.125.194.127:19302']
+            }],
             domain: this.sipInfo.domain,
             autostart: true,
             register: true,
