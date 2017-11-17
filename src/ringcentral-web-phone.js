@@ -166,13 +166,13 @@
             sessionDescriptionHandlerOptions: {
                 peerConnectionOptions: {
                     rtcConfiguration: {
-                        rtcpMuxPolicy: 'negotiate'
+                        rtcpMuxPolicy: 'negotiate',
+                        iceServers: [{
+                            urls: this.sipInfo.stunServers || ['stun:74.125.194.127:19302']
+                        }]
                     }
                 }
             },
-            iceServers: [{
-                urls: this.sipInfo.stunServers || ['stun:74.125.194.127:19302']
-            }],
             domain: this.sipInfo.domain,
             autostart: true,
             register: true,
