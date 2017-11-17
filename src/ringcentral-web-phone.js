@@ -340,6 +340,8 @@
                 session.sessionDescriptionHandler.setDescription(incomingResponse).then(function() {
                     session.status = 11; //C.STATUS_EARLY_MEDIA;
                     session.hasAnswer = true;
+                }).catch(function(e){
+                    console.error(e);
                 });
             }
         });
